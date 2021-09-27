@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @Slf4j
@@ -25,8 +27,9 @@ public class Controller {
         List<Student> result = new ArrayList<>();
 
         try {
-            result = restTemplate.getForObject(URL, ArrayList.class);
+            ResponseEntity<Student[]> response = restTemplate.getForEntity(URL, Student[].class);
 
+            result = Arrays.asList(Objects.requireNonNull(response.getBody()));
             log.info("Student list: " + result);
         } catch (Exception e) {
             log.error("Getting students failed ... error:" + e);
@@ -37,12 +40,14 @@ public class Controller {
     @PostMapping("/addStudent")
     public Student restCallForAddingNewStudent(@RequestBody Student student) {
         try {
+            student.setStudentNo(null);
             HttpEntity<Student> request = new HttpEntity<>(student);
 
             log.info("Request is :" + student);
 
-            ResponseEntity<String> result = restTemplate.postForEntity(URL, request, String.class);
+            ResponseEntity<Student> result = restTemplate.postForEntity(URL, request, Student.class);
 
+            student = result.getBody();
             log.info("Adding student complete. Result is " + result);
         } catch (Exception e) {
             log.error("Adding student failed ... error:" + e);
@@ -67,5 +72,29 @@ public class Controller {
             log.error("Getting student failed ... error:" + e);
         }
         return result;
+    }
+
+    @DeleteMapping("/deleteStudent/{studentNo}")
+    public String restCallForDeleteById(@PathVariable Long studentNo) {
+
+        String uri = URL + "/" + studentNo;
+        restTemplate.delete(uri);
+
+        return "SUCCESS";
+    }
+
+    @DeleteMapping("/deleteAllStudents")
+    public String restCallForDeleteAllStudents() {
+
+        List<Student> allStudents = restCallForStudents();
+
+        allStudents.forEach(student -> log.info(student.toString()));
+
+        allStudents.forEach(student -> {
+            String uri = URL + "/" + student.getStudentNo();
+            restTemplate.delete(uri);
+        });
+
+        return "SUCCESS";
     }
 }
