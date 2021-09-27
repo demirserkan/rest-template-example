@@ -24,6 +24,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
@@ -60,7 +61,7 @@ public class HttpClientConfiguration {
         }
 
         Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder
-                .<ConnectionSocketFactory>create().register("https", sslsf)
+                .<ConnectionSocketFactory>create().register("https", Objects.requireNonNull(sslsf))
                 .register("http", new PlainConnectionSocketFactory())
                 .build();
 
